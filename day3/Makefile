@@ -1,13 +1,21 @@
-NAME = day3
+NAME = day3.o
 SRC = day3.c
 CFLAGS = -Wall -Wextra -Werror
+INPUT = inputFile
+TEST_INPUT = testInput
+
+compileAndTest: compile test
+
+compileAndRun: compile run
+
+compile:
+	@gcc -o $(NAME) $(SRC) $(CFLAGS)
+
+test:
+	@./$(NAME) $(TEST_INPUT)
 
 run:
-	@gcc -o $(NAME) $(SRC) $(CFLAGS) $(LDFLAGS)
+	@./$(NAME) $(INPUT)
 
 clean:
 	@rm -f $(NAME)
-
-re: clean run
-
-.PHONY: clean

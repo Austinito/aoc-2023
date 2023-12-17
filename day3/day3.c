@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_GRID_WIDTH 100
-#define MAX_GRID_HEIGHT 100
+#define MAX_GRID_WIDTH 150
+#define MAX_GRID_HEIGHT 200
 
-#define MAX_NUMBERS 50
-#define MAX_SYMBOLS 50
+#define MAX_NUMBERS 2000
+#define MAX_SYMBOLS 4000
 
 typedef struct {
     int startX, endX;
@@ -99,7 +99,7 @@ int isNeighbor(Number n, int x, int y) {
     }
 
     if (n.y == y) {
-        if (x == xMin && x == xMax) {
+        if (x == xMin || x == xMax) {
             return 1;
         }
     } else if (n.y == (y + 1) || n.y == (y - 1)) {
@@ -108,10 +108,6 @@ int isNeighbor(Number n, int x, int y) {
         }
     }
 
-    if (n.value == 467) {
-        printf("Number %d is not neighbor of (%d, %d)\n", n.value, x, y);
-        printf("xMin: %d, xMax: %d\n", xMin, xMax);
-    }
     return 0;
 }
 
@@ -127,14 +123,57 @@ int addNumbers(Number *numbers, Symbol *symbols) {
                 break;
             }
             if (isNeighbor(numbers[i], symbols[j].x, symbols[j].y)) {
-                printf("Number %d is neighbor of symbol %d\n", i, j);
                 result += numbers[i].value;
-
-                printf("Result: %d\n", result);
                 break;
             }
         }
     }
+    return result;
+}
+
+int getRatioForGear(Number *numbers, int x, int y) {
+    int ratio = 0;
+    int numNeighbors = 0;
+    int neighborValue = 0;
+
+    for (int j = 0; j < MAX_NUMBERS; j++) {
+        if (numbers[j].startX == -1) {
+            break;
+        }
+        if (isNeighbor(numbers[j], x, y)) {
+            switch(numNeighbors){
+                case 0:
+                  neighborValue = numbers[j].value;
+                  break;
+                case 1:
+                  ratio = neighborValue * numbers[j].value;
+                  break;
+                case 2:
+                  return 0;
+            }
+            numNeighbors++;
+        }
+    }
+    return ratio;
+}
+
+/* Returns the "gear ratio" of the grid
+ * The gear ratio is whenever the '*' symbol is adjacent to EXACTLY 2 nubmers.
+ * We then will multiply the two numbers together and add it to the result.
+ * We do this for all the "gears" and add them all together.
+ */
+int getGearRatio(Number *numbers, Symbol *symbols) {
+    int result = 0;
+
+    for (int i = 0; i < MAX_SYMBOLS; i++) {
+        if (symbols[i].x == -1) {
+            break;
+        }
+        if (symbols[i].symbol == '*') {
+            result += getRatioForGear(numbers, symbols[i].x, symbols[i].y);
+        }
+    }
+
     return result;
 }
 
@@ -157,26 +196,11 @@ int main(int argc, char const *argv[]) {
 
     loadGridData(fp, numbers, symbols);
 
-
     int result = addNumbers(numbers, symbols);
-/*
-    // print out the numbers
-    for (int i = 0; i < MAX_NUMBERS; i++) {
-        if (numbers[i].startX == -1) {
-            break;
-        }
-        printf("Number %d: %d with ([%d -> %d], %d)\n", i, numbers[i].value, numbers[i].startX, numbers[i].endX, numbers[i].y);
-    }
-    // print out the symbols
-    for (int i = 0; i < MAX_SYMBOLS; i++) {
-        if (symbols[i].x == -1) {
-            break;
-        }
-        printf("Symbol %d: %c at (%d, %d)\n", i, symbols[i].symbol, symbols[i].x, symbols[i].y);
-    }
-    */
+    int gearRatio = getGearRatio(numbers, symbols);
 
     printf("Result: %d\n", result);
+    printf("Gear Ratio: %d\n", gearRatio);
 
     return 0;
 }
